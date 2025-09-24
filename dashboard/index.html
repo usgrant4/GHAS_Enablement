@@ -1,0 +1,22 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GHAS Code Scanning Rollup</title>
+<h1>GHAS Code Scanning Rollup</h1>
+<p>Open alerts exported nightly.</p>
+<table id="t" border="1" cellpadding="6">
+  <thead><tr><th>Repo</th><th>Severity</th><th>Rule</th><th>Tool</th><th>Link</th></tr></thead>
+  <tbody></tbody>
+</table>
+<script>
+fetch('./data/alerts.json')
+  .then(r=>r.json())
+  .then(rows=>{
+    const tb=document.querySelector('#t tbody');
+    rows.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `<td>${r.repo}</td><td>${r.severity||''}</td><td>${r.rule_id||''}</td>
+                      <td>${r.tool||''}</td><td><a href="${r.html_url}" target="_blank">view</a></td>`;
+      tb.appendChild(tr);
+    });
+  });
+</script>
