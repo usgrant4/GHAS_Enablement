@@ -7,8 +7,6 @@ Automate enabling **GitHub Advanced Security (GHAS)** across repositories and ex
 ![PowerShell](https://img.shields.io/badge/PowerShell-7+-5391FE)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-> Replace `OWNER/REPO` above with your repository path.
-
 ---
 
 ## What this delivers
