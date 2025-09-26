@@ -1,6 +1,6 @@
 name: export-alerts
 on:
-  schedule: [{ cron: "0 2 * * *" }]
+  # schedule: [{ cron: "0 2 * * *" }]  # ⬅️ Disabled for public repo
   workflow_dispatch: {}
 jobs:
   export:
