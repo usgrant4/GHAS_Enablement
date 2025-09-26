@@ -1,4 +1,4 @@
-# GHAS Enablement & Evidence Dashboard — Pro
+# GHAS Enablement & Evidence Dashboard
 
 Automate enabling **GitHub Advanced Security (GHAS)** across repositories and export **Code Scanning** alerts to a JSON roll‑up, Markdown summary, and a lightweight static dashboard.
 
