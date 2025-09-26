@@ -1,22 +1,49 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>GHAS Code Scanning Rollup</title>
-<h1>GHAS Code Scanning Rollup</h1>
-<p>Open alerts exported nightly.</p>
-<table id="t" border="1" cellpadding="6">
-  <thead><tr><th>Repo</th><th>Severity</th><th>Rule</th><th>Tool</th><th>Link</th></tr></thead>
-  <tbody></tbody>
-</table>
-<script>
-fetch('./data/alerts.json')
-  .then(r=>r.json())
-  .then(rows=>{
-    const tb=document.querySelector('#t tbody');
-    rows.forEach(r=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML = `<td>${r.repo}</td><td>${r.severity||''}</td><td>${r.rule_id||''}</td>
-                      <td>${r.tool||''}</td><td><a href="${r.html_url}" target="_blank">view</a></td>`;
-      tb.appendChild(tr);
-    });
-  });
-</script>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>GHAS Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+      .stat { display:inline-block; margin-right:20px; padding:10px 14px; border:1px solid #ddd; border-radius:10px; }
+      table { border-collapse: collapse; width: 100%; margin-top: 16px;}
+      th, td { border: 1px solid #eee; padding: 8px; text-align: left; }
+      th { position: sticky; top: 0; background: #fafafa; }
+      .muted { color: #666; font-size: 0.9em; }
+    </style>
+  </head>
+  <body>
+    <h1>GHAS Dashboard</h1>
+    <div id="stats"></div>
+    <div class="muted">Source: <code>dashboard/data/alerts.json</code></div>
+    <table id="tbl">
+      <thead>
+        <tr><th>Repo</th><th>Rule</th><th>Severity</th><th>Tool</th><th>State</th><th>URL</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <script>
+      async function run() {
+        const res = await fetch('dashboard/data/alerts.json', {cache: 'no-store'});
+        const payload = await res.json();
+        const alerts = payload.alerts || [];
+        const stats = document.getElementById('stats');
+        stats.innerHTML = `
+          <span class="stat"><strong>Total</strong>: ${alerts.length}</span>
+          <span class="stat"><strong>Org</strong>: ${payload.org}</span>
+          <span class="stat"><strong>Generated</strong>: ${payload.generated_at}</span>`;
+        const tbody = document.querySelector('#tbl tbody');
+        alerts.forEach(a => {
+          const tr = document.createElement('tr');
+          const sev = (a.rule && a.rule.severity) || 'unknown';
+          const tool = (a.tool && a.tool.name) || 'unknown';
+          const url = a.html_url || a.url || '#';
+          tr.innerHTML = `<td>${a._repo}</td><td>${a.rule?.id || ''}</td><td>${sev}</td><td>${tool}</td><td>${a.state||''}</td><td><a href="${url}" target="_blank">link</a></td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      run().catch(console.error);
+    </script>
+  </body>
+</html>
