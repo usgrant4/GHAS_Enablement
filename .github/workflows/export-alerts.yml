@@ -1,6 +1,6 @@
 name: export-alerts
 on:
-  # schedule: [{ cron: "0 2 * * *" }] # disabled for public repo
+  # schedule: [{ cron: "0 2 * * *" }]  # ⬅️ Disabled for public repo
   workflow_dispatch: {}
 permissions:
   contents: write
@@ -23,8 +23,8 @@ jobs:
           pip install requests
       - name: Export alerts JSON
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_ORG:   ${{ secrets.GH_ORG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ORG:   ${{ secrets.GH_ORG || 'your-org-name' }}
         run: python scripts/export_code_scanning.py
       - name: Summarize to Markdown
         run: python scripts/summarize_alerts.py

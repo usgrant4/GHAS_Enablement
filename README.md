@@ -1,6 +1,11 @@
 # GHAS Enablement & Evidence Dashboard — Pro
 
-Enable GitHub Advanced Security (GHAS), export Code Scanning alerts to JSON, summarize to Markdown, and render a lightweight static dashboard.
+Automate enabling **GitHub Advanced Security (GHAS)** across repositories and export **Code Scanning** alerts to a JSON roll‑up, Markdown summary, and a lightweight static dashboard.
+
+[![CI – Export Alerts](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/export-alerts.yml?branch=main)](https://github.com/OWNER/REPO/actions/workflows/export-alerts.yml)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB)
+![PowerShell](https://img.shields.io/badge/PowerShell-7+-5391FE)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
@@ -124,4 +129,69 @@ python scripts/summarize_alerts.py
 open index.html  # or use a static server
 ```
 
-> Security note: ensure your PAT scopes match your needs and avoid pushing tokens to the repo.
+---
+
+## Dashboard
+
+Open `dashboard/index.html` (via GitHub Pages or locally). It loads `dashboard/data/alerts.json` and renders a simple table:
+
+- **Columns**: repo, severity, rule, tool, link
+- **Sources**: all repos in the org matching GHAS Code Scanning alerts (state=open)
+- **Updates**: on each `export-alerts.yml` run
+
+> To publish with **GitHub Pages**, set Pages to serve from `/ (root)`. The `dashboard/` folder is static assets committed to `main`.
+
+---
+
+## Security considerations
+
+- Store tokens in **repository secrets** (not in code).  
+- Restrict PAT/App permissions to the **least privileges** needed.  
+- If your org enforces GHAS billing per repo, test with dry‑run first.  
+- Consider scoping enablement to a repo allow‑list instead of regex.
+
+---
+
+## Troubleshooting
+
+- **403 / insufficient scopes** – token lacks `admin:org` or repo admin. Use an org admin token/GitHub App.  
+- **No alerts exported** – ensure repos have code scanning tools configured (CodeQL or third‑party).  
+- **Rate limits** – the exporter paginates and throttles lightly; for very large orgs, run less frequently or shard by repo name.  
+- **Git push errors** – Actions needs permission to push to `main`. Consider a docs/data branch or `permissions: contents: write` in the workflow.
+
+---
+
+## Example snippets
+
+PowerShell (core loop in `enable_ghas.ps1`):
+```powershell
+$repos = gh api -H "Authorization: token $env:GH_TOKEN" "/orgs/$Org/repos?per_page=100" | ConvertFrom-Json
+foreach ($r in $repos) {
+  if (-not $filter.IsMatch($r.name)) { continue }
+  $payload = @{ security_and_analysis = @{ advanced_security = @{ status = "enabled" } } } | ConvertTo-Json
+  if ($WhatIf) { Write-Host "[DRY-RUN] Would enable GHAS for $($r.full_name)" }
+  else { gh api -X PATCH -H "Authorization: token $env:GH_TOKEN" "/repos/$($r.full_name)" -F "security_and_analysis=$payload" | Out-Null }
+}
+```
+
+Python (exporter core in `export_code_scanning.py`):
+```python
+def paged(url):
+    while url:
+        r = requests.get(url, headers=HDRS, timeout=30)
+        r.raise_for_status()
+        yield from r.json()
+        url = r.links.get("next", {}).get("url")
+```
+
+---
+
+## License & Author
+
+MIT — feel free to copy and adapt.
+
+**Ulysses Grant, IV**  
+[LinkedIn](https://www.linkedin.com/in/usgrant4/) 
+[GitHub](https://github.com/usgrant4)
+
+---
